@@ -8,7 +8,7 @@
 
 A browser-based calculator supporting the design and analysis of ¹⁴CO₂ assimilation assays in environmental and cultured microbial communities. Developed as Supplementary File S1 for:
 
-> Ray AE, Tribbia DZ, Bernaud N, Ferrari BC. *An improved and expanded protocol for ¹⁴CO₂ assimilation assays in environmental and cultured microbial communities.* Applied and Environmental Microbiology (in preparation).
+> Ray AE, Tribbia DZ, Bernaud N, Laird T, Ferrari BC. *An improved and expanded protocol for ¹⁴CO₂ assimilation assays in environmental and cultured microbial communities.* Applied and Environmental Microbiology (in preparation).
 
 ## Features
 
