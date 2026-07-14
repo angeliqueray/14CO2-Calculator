@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¹⁴CO₂ Assimilation Assay Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #1a2744;
+    --navy-lt: #2e3f6f;
+    --bg:      #F8F9FA;
+    --bg-card: #ffffff;
+    --border:  #dde3ec;
+    --input-bg:#FFF9EC;
+    --calc-bg: #F0F4FA;
+    --orange:  #E69F00;
+    --blue:    #0072B2;
+    --green:   #2d6a4f;
+    --green-bg:#e8f5ee;
+    --red:     #c0392b;
+    --red-bg:  #fdf0ee;
+    --amber:   #d4860a;
+    --amber-bg:#fff4df;
+    --grey:    #6b7a99;
+    --mono:    'JetBrains Mono', monospace;
+    --sans:    'Inter', sans-serif;
+    --radius:  6px;
+    --shadow:  0 1px 4px rgba(26,39,68,0.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--navy); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+  header { background: var(--navy); color: #fff; padding: 20px 32px 16px; border-bottom: 3px solid var(--orange); }
+  header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+  header p { font-size: 0.8rem; color: #a8b4d0; margin-top: 3px; }
+  header .badge { display: inline-block; background: rgba(230,159,0,0.18); color: var(--orange); border: 1px solid rgba(230,159,0,0.35); border-radius: 20px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
+  .tab-bar { display: flex; background: var(--navy); padding: 0 32px; gap: 4px; }
+  .tab-btn { background: none; border: none; color: #7a8ab0; font-family: var(--sans); font-size: 0.82rem; font-weight: 500; padding: 10px 18px; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.15s, border-color 0.15s; letter-spacing: 0.01em; }
+  .tab-btn:hover { color: #c8d4ee; }
+  .tab-btn.active { color: #fff; border-bottom-color: var(--orange); }
+  .status-bar { background: var(--navy-lt); padding: 8px 32px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .status-item { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #a8b4d0; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4a5568; flex-shrink: 0; transition: background 0.2s; }
+  .status-dot.pass { background: #48bb78; box-shadow: 0 0 6px rgba(72,187,120,0.5); }
+  .status-dot.fail { background: #fc8181; box-shadow: 0 0 6px rgba(252,129,129,0.5); }
+  .status-label { font-weight: 500; }
+  .status-val { font-family: var(--mono); color: #e2e8f0; font-size: 0.75rem; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+  .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow); }
+  .section-head { background: var(--navy); color: #fff; padding: 10px 18px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .section-head .icon { width: 18px; height: 18px; background: rgba(230,159,0,0.25); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--orange); flex-shrink: 0; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media(max-width:600px) { .field-grid { grid-template-columns: 1fr; } }
+  .field { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .field:nth-child(odd) { border-right: 1px solid var(--border); }
+  .field.full { grid-column: 1 / -1; border-right: none; }
+  .field:last-child, .field.full:last-child { border-bottom: none; }
+  label { font-size: 0.75rem; font-weight: 500; color: var(--grey); letter-spacing: 0.01em; display: flex; align-items: center; gap: 5px; }
+  label .unit { font-family: var(--mono); font-size: 0.68rem; background: var(--calc-bg); color: var(--blue); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
+  input[type="number"], input[type="text"], select { font-family: var(--mono); font-size: 0.92rem; font-weight: 500; color: var(--navy); background: var(--input-bg); border: 1px solid #e8d9b0; border-radius: 4px; padding: 6px 10px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus, select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(230,159,0,0.15); }
+  select { background: var(--input-bg); }
+  .calc-val { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; color: var(--blue); background: var(--calc-bg); border: 1px solid #c8d8f0; border-radius: 4px; padding: 6px 10px; min-height: 34px; display: flex; align-items: center; }
+  .calc-val.fail { color: var(--red); background: var(--red-bg); border-color: #e8b0a8; }
+  .calc-val.pass { color: var(--green); background: var(--green-bg); border-color: #9dd0b8; }
+  .calc-val.bold { font-size: 1.05rem; }
+  .hint { font-size: 0.7rem; color: #94a3b8; font-style: italic; margin-top: 1px; }
+  .alert { margin: 0; padding: 10px 18px; font-size: 0.78rem; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--border); }
+  .alert.fail { background: var(--red-bg); color: var(--red); }
+  .alert.pass { background: var(--green-bg); color: var(--green); }
+  .results-table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  thead tr { background: #f0f4fa; border-bottom: 2px solid var(--border); }
+  thead th { padding: 9px 10px; text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--grey); white-space: nowrap; }
+  thead th:first-child { padding-left: 18px; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #fafbfd; }
+  tbody td { padding: 7px 10px; vertical-align: middle; }
+  tbody td:first-child { padding-left: 18px; }
+  tbody td input { background: var(--input-bg); border: 1px solid #e8d9b0; border-radius: 3px; padding: 4px 7px; font-family: var(--mono); font-size: 0.82rem; width: 100%; outline: none; color: var(--navy); -moz-appearance: textfield; min-width: 80px; }
+  tbody td input::-webkit-outer-spin-button, tbody td input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  tbody td input:focus { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(230,159,0,0.15); }
+  .td-calc { color: var(--blue); font-family: var(--mono); font-weight: 500; }
+  .td-rate { color: var(--navy); font-family: var(--mono); font-weight: 600; }
+  .td-warn { color: var(--red); font-family: var(--mono); }
+  .stats-bar { display: flex; flex-wrap: wrap; gap: 0; border-top: 2px solid var(--border); background: var(--navy); }
+  .stat-block { padding: 12px 20px; flex: 1; min-width: 120px; border-right: 1px solid rgba(255,255,255,0.08); }
+  .stat-block:last-child { border-right: none; }
+  .stat-label { font-size: 0.68rem; color: #7a8ab0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .stat-val { font-family: var(--mono); font-size: 1rem; font-weight: 600; color: #e2e8f0; }
+  .stat-unit { font-size: 0.65rem; color: #7a8ab0; margin-left: 3px; }
+  .btn-row { display: flex; gap: 8px; padding: 14px 18px; background: #f8f9fc; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  button.action { font-family: var(--sans); font-size: 0.78rem; font-weight: 600; padding: 7px 16px; border-radius: 4px; border: none; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em; }
+  button.action:hover { opacity: 0.85; }
+  button.primary { background: var(--navy); color: #fff; }
+  button.secondary { background: var(--border); color: var(--navy); }
+  button.danger { background: var(--red-bg); color: var(--red); border: 1px solid #e8b0a8; }
+  .add-row-btn { width: 100%; padding: 8px; background: #f8f9fc; border: none; border-top: 1px solid var(--border); cursor: pointer; color: var(--grey); font-size: 0.75rem; font-family: var(--sans); font-weight: 500; transition: background 0.15s, color 0.15s; }
+  .add-row-btn:hover { background: var(--calc-bg); color: var(--blue); }
+  footer { text-align: center; padding: 20px 32px; font-size: 0.72rem; color: #94a3b8; border-top: 1px solid var(--border); line-height: 1.7; }
+  .rad-note { background: var(--amber-bg); border: 1px solid #f0c060; border-radius: 4px; padding: 10px 14px; font-size: 0.73rem; color: var(--amber); margin-bottom: 20px; display: flex; gap: 8px; align-items: flex-start; }
+  .rad-note .icon { font-size: 0.9rem; flex-shrink: 0; }
+  .divider-label { grid-column: 1/-1; background: #f0f4fa; border-bottom: 1px solid var(--border); padding: 6px 18px; font-size: 0.7rem; font-weight: 600; color: var(--grey); letter-spacing: 0.05em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Supplementary Tool S1</div>
+  <h1>¹⁴CO₂ Assimilation Assay Calculator</h1>
+  <p>Ray AE, Tribbia DZ, Bernaud N, Ferrari BC — <em>Applied and Environmental Microbiology</em> (in preparation)</p>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('designer')">Experiment Designer</button>
+  <button class="tab-btn" onclick="switchTab('results')">Results Calculator</button>
+</div>
+
+<!-- Status bar: 3 checks + overall -->
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-dot" id="dot-limit"></div>
+    <span class="status-label">Activity limit</span>
+    <span class="status-val" id="sv-limit">—</span>
+  </div>
+  <div class="status-item">
+    <div class="status-dot" id="dot-sufficient"></div>
+    <span class="status-label">Sufficient CO₂</span>
+    <span class="status-val" id="sv-sufficient">—</span>
+  </div>
+  <div class="status-item">
+    <div class="status-dot" id="dot-inj"></div>
+    <span class="status-label">Injection vol</span>
+    <span class="status-val" id="sv-inj">—</span>
+  </div>
+  <div class="status-item" style="margin-left:auto">
+    <div class="status-dot" id="dot-overall"></div>
+    <span class="status-label">Ready to proceed</span>
+  </div>
+</div>
+
+<main>
+
+<!-- ════════════════════ TAB 1: EXPERIMENT DESIGNER ════════════════════ -->
+<div class="tab-pane active" id="pane-designer">
+
+  <div class="rad-note">
+    <span class="icon">☢</span>
+    <span><strong>Radiation safety:</strong> Confirm your institutional activity limit before use. The default (8.8 MBq) is the UNSW approved limit. Replace it with your institution's value. Never exceed your approved limit.</span>
+  </div>
+
+  <!-- A. Reagent parameters -->
+  <div class="section">
+    <div class="section-head"><div class="icon">A</div> Reagent parameters</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Specific activity <span class="unit">mCi/mmol</span></label>
+        <input type="number" id="sa" value="58.8" step="0.1" min="0" oninput="calc()">
+        <span class="hint">From Certificate of Analysis (= µCi/µmol)</span>
+      </div>
+      <div class="field">
+        <label>Stock concentration <span class="unit">µCi/µL</span></label>
+        <input type="number" id="conc" value="0.25" step="0.01" min="0" oninput="calc()">
+        <span class="hint">e.g. 0.25 µCi/µL = 0.25 mCi/mL</span>
+      </div>
+      <div class="field">
+        <label>Lot number</label>
+        <input type="text" id="lot" placeholder="e.g. 673-095-A-20240508-JHO" style="background:#f8f9fc;border-color:var(--border);font-size:0.8rem;">
+      </div>
+      <div class="field">
+        <label>Institutional activity limit <span class="unit">MBq</span></label>
+        <input type="number" id="inst_limit" value="8.8" step="0.1" min="0" oninput="calc()">
+        <span class="hint">Default: UNSW (8.8 MBq) — change to your institution's value</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. Experiment setup -->
+  <div class="section">
+    <div class="section-head"><div class="icon">B</div> Experiment setup</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Number of sample vials</label>
+        <input type="number" id="nvials" value="18" step="1" min="1" oninput="calc()">
+        <span class="hint">Include all controls</span>
+      </div>
+      <div class="field">
+        <label>Sample type</label>
+        <select id="sample_type" onchange="calc()">
+          <option value="soil">Soil / Environmental</option>
+          <option value="culture">Culture / Enrichment</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="lbl-mass">Sample mass <span class="unit">g</span></label>
+        <input type="number" id="sample_mass" value="0.5" step="0.1" min="0" oninput="calc()">
+        <span class="hint">Per vial</span>
+      </div>
+      <div class="field">
+        <label>Incubation duration <span class="unit">days</span></label>
+        <input type="number" id="duration" value="5" step="1" min="1" oninput="calc()">
+        <span class="hint">For results normalisation</span>
+      </div>
+      <div class="field">
+        <label>Sample vial headspace volume <span class="unit">mL</span></label>
+        <input type="number" id="hs_vol" value="2.16" step="0.01" min="0" oninput="calc()">
+        <span class="hint">1.5 mL vial − 0.5 g/mL sample = 2.16 mL (default)</span>
+      </div>
+      <div class="field">
+        <label>Target [¹⁴CO₂] in sample vial headspace <span class="unit">ppmv</span></label>
+        <input type="number" id="target_ppm" value="400" step="10" min="0" oninput="calc()">
+        <span class="hint">Recommended: 400 ppmv (ambient CO₂ equivalent)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. Gas injection & preparation parameters -->
+  <div class="section">
+    <div class="section-head"><div class="icon">C</div> Gas injection &amp; preparation parameters</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Gas injection volume per vial <span class="unit">µL</span></label>
+        <input type="number" id="inj_vol" value="300" step="10" min="0" oninput="calc()">
+        <span class="hint">Recommended range: 300–600 µL</span>
+      </div>
+      <div class="field">
+        <label>Overhead safety margin <span class="unit">%</span></label>
+        <input type="number" id="overhead" value="10" step="1" min="0" max="100" oninput="calc()">
+        <span class="hint">Extra vials above n required. Accounts for vessel dead volume and handling losses. Increase if batches run short.</span>
+      </div>
+      <div class="field">
+        <label>Lab temperature for gas volume calculation <span class="unit">°C</span></label>
+        <input type="number" id="lab_temp" value="20" step="1" min="-10" max="50" oninput="calc()">
+        <span class="hint">Corrects molar volume of ideal gas. Default 20°C. Use 0°C for strict STP (22.414 L/mol).</span>
+      </div>
+      <div class="field">
+        <label>Incubation temperature <span class="unit">°C</span></label>
+        <input type="number" id="incub_temp" value="10" step="1" oninput="calc()">
+        <span class="hint">For protocol summary only — does not affect calculations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- D. Calculated outputs -->
+  <div class="section">
+    <div class="section-head"><div class="icon">D</div> Calculated outputs</div>
+    <div class="field-grid">
+
+      <div class="divider-label">Gasification bag preparation</div>
+
+      <div class="field">
+        <label>Molar volume at lab temperature <span class="unit">L/mol</span></label>
+        <div class="calc-val" id="out-molar-vol">—</div>
+        <span class="hint">22.414 × (T + 273.15) / 273.15</span>
+      </div>
+      <div class="field">
+        <label>[¹⁴CO₂] in gasification vessel <span class="unit">ppmv</span></label>
+        <div class="calc-val" id="out-vessel-ppm">—</div>
+        <span class="hint">1000 × target ppmv × headspace vol / injection vol</span>
+      </div>
+      <div class="field">
+        <label>Gasification vessel volume needed <span class="unit">mL</span></label>
+        <div class="calc-val" id="out-vessel-vol">—</div>
+        <span class="hint">Injection vol × n_vials × (1 + overhead %)</span>
+      </div>
+      <div class="field">
+        <label>Gas volume of evolved ¹⁴CO₂ <span class="unit">µL</span></label>
+        <div class="calc-val" id="out-gas-vol">—</div>
+        <span class="hint">Vessel vol × vessel ppmv ÷ 1,000,000</span>
+      </div>
+      <div class="field">
+        <label>µmol ¹⁴CO₂ required</label>
+        <div class="calc-val" id="out-umol">—</div>
+        <span class="hint">Gas vol (µL) ÷ molar vol (L/mol)</span>
+      </div>
+      <div class="field">
+        <label><strong>Stock [¹⁴C]-NaHCO₃ to pipette</strong> <span class="unit">µL</span></label>
+        <div class="calc-val bold" id="out-stock-vol">—</div>
+        <span class="hint">µmol × SA ÷ stock concentration</span>
+      </div>
+      <div class="field">
+        <label>Zero-air to add to gasification vessel <span class="unit">mL</span></label>
+        <div class="calc-val" id="out-zero-air">—</div>
+        <span class="hint">Vessel volume − gas volume of pure ¹⁴CO₂</span>
+      </div>
+      <div class="field">
+        <label>Volume of <strong>gasification</strong> HCl to add (1.10× excess) <span class="unit">µL</span></label>
+        <div class="calc-val" id="out-hcl">—</div>
+        <span class="hint">Stock vol × 1.1. HCl must be prepared at the gasification concentration shown below — NOT 1 M.</span>
+      </div>
+
+      <div class="field full">
+        <label><strong>Gasification HCl concentration to prepare</strong> <span class="unit">M</span></label>
+        <div class="calc-val" id="out-hcl-conc">—</div>
+        <span class="hint">Stock conc (µCi/µL) ÷ SA (mCi/mmol). Prepare HCl at this concentration for gasification only.</span>
+      </div>
+      <div class="field full" style="background:#fdf0ee;border-left:3px solid #c0392b;padding:10px 18px;">
+        <label style="color:#c0392b;font-weight:600;">⚠ Two separate HCl solutions are used in this protocol</label>
+        <span class="hint" style="color:#7f0000;font-style:normal;font-size:0.78rem;">
+          <strong>(1) Gasification HCl</strong> (dilute, calculated above) — added to [¹⁴C]-NaHCO₃ to liberate ¹⁴CO₂ gas into the bag.<br>
+          <strong>(2) Acidification HCl (1 M, standard)</strong> — used after incubation to drive unfixed ¹⁴CO₂ from samples.<br>
+          These are completely different solutions. Using the wrong concentration at either step will compromise results.
+        </span>
+      </div>
+
+      <div class="divider-label">Activity &amp; compliance</div>
+
+      <div class="field">
+        <label>Total activity in gasification bag <span class="unit">µCi</span></label>
+        <div class="calc-val" id="out-total-uci">—</div>
+        <span class="hint">Stock vol × stock concentration</span>
+      </div>
+      <div class="field">
+        <label>Total activity in gasification bag <span class="unit">MBq</span></label>
+        <div class="calc-val" id="out-total-mbq">—</div>
+        <span class="hint">Total radioactivity in the experiment — correct figure for compliance</span>
+      </div>
+
+      <div class="divider-label">Per-vial values</div>
+
+      <div class="field">
+        <label>µCi of [¹⁴CO₂] per sample vial</label>
+        <div class="calc-val" id="out-uci-vial">—</div>
+        <span class="hint">Total bag activity × (injection vol ÷ vessel vol)</span>
+      </div>
+      <div class="field">
+        <label>Theoretical DPM per vial</label>
+        <div class="calc-val" id="out-dpm-vial">—</div>
+        <span class="hint">µCi/vial × 2,220,000 DPM/µCi</span>
+      </div>
+      <div class="field">
+        <label>CO₂ in headspace at lab temp <span class="unit">pmol/vial</span></label>
+        <div class="calc-val" id="out-pmol">—</div>
+        <span class="hint">Headspace vol × target ppmv ÷ 1e6 × 1e12 ÷ (molar vol × 1000)</span>
+      </div>
+      <div class="field">
+        <label>Sample vials possible from 1 batch</label>
+        <div class="calc-val" id="out-vials-poss">—</div>
+        <span class="hint">Vessel volume ÷ injection volume</span>
+      </div>
+    </div>
+
+    <div id="alert-limit"  class="alert" style="display:none"></div>
+    <div id="alert-suff"   class="alert" style="display:none"></div>
+    <div id="alert-inj"    class="alert" style="display:none"></div>
+  </div>
+
+  <!-- E. Protocol summary -->
+  <div class="section">
+    <div class="section-head"><div class="icon">E</div> Protocol summary</div>
+    <div class="field-grid">
+      <div class="field full">
+        <label>Gasification step</label>
+        <div class="calc-val" id="out-gasification" style="font-size:0.82rem;white-space:normal;height:auto;line-height:1.5;padding:8px 10px;">—</div>
+      </div>
+      <div class="field full">
+        <label>Incubation conditions</label>
+        <div class="calc-val" id="out-incubation" style="font-size:0.82rem;white-space:normal;height:auto;line-height:1.5;padding:8px 10px;">—</div>
+      </div>
+      <div class="field full">
+        <label>Acidification step</label>
+        <div class="calc-val" id="out-acidification" style="font-size:0.82rem;white-space:normal;height:auto;line-height:1.5;padding:8px 10px;">—</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /pane-designer -->
+
+
+<!-- ════════════════════ TAB 2: RESULTS CALCULATOR ════════════════════ -->
+<div class="tab-pane" id="pane-results">
+
+  <div class="section">
+    <div class="section-head"><div class="icon">P</div> Experiment parameters</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Background DPM (blank mean) <span class="unit">DPM</span></label>
+        <input type="number" id="r-blank" value="50" step="1" min="0" oninput="calcResults()">
+        <span class="hint">Mean DPM of blank vials (EcoLume only, no ¹⁴C)</span>
+      </div>
+      <div class="field">
+        <label>Theoretical DPM per vial</label>
+        <input type="number" id="r-theor" value="" step="1" min="0" oninput="calcResults()" placeholder="Auto-filled from Designer">
+        <span class="hint">Links to Experiment Designer output</span>
+      </div>
+      <div class="field">
+        <label>Specific activity <span class="unit">mCi/mmol</span></label>
+        <input type="number" id="r-sa" value="58.8" step="0.1" min="0" oninput="calcResults()">
+      </div>
+      <div class="field">
+        <label>Sample type</label>
+        <select id="r-type" onchange="updateRateLabel()">
+          <option value="soil">Soil (nmol CO₂ g⁻¹ day⁻¹)</option>
+          <option value="culture">Culture (pmol CO₂ mL⁻¹ day⁻¹)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="r-lbl-mass">Sample mass <span class="unit">g</span></label>
+        <input type="number" id="r-mass" value="0.5" step="0.1" min="0" oninput="calcResults()">
+      </div>
+      <div class="field">
+        <label>Incubation duration <span class="unit">days</span></label>
+        <input type="number" id="r-duration" value="5" step="1" min="1" oninput="calcResults()">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="icon">R</div> Raw DPM data entry</div>
+    <div class="results-table-wrap">
+      <table id="results-table">
+        <thead>
+          <tr>
+            <th>Vial</th>
+            <th>Raw DPM</th>
+            <th>Blank-corrected DPM</th>
+            <th>% Recovery</th>
+            <th>nmol CO₂ fixed</th>
+            <th id="rate-col-hdr">Rate (nmol g⁻¹ d⁻¹)</th>
+            <th>Exclude</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+    <button class="add-row-btn" onclick="addRow()">+ Add vial</button>
+    <div class="stats-bar">
+      <div class="stat-block">
+        <div class="stat-label">n (included)</div>
+        <div class="stat-val" id="stat-n">—</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">Mean rate</div>
+        <div class="stat-val" id="stat-mean">—<span class="stat-unit" id="stat-unit"></span></div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">SD</div>
+        <div class="stat-val" id="stat-sd">—</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">Mean % recovery</div>
+        <div class="stat-val" id="stat-rec">—<span class="stat-unit">%</span></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="action primary"    onclick="addRow()">Add vial</button>
+      <button class="action secondary"  onclick="addBlankRow()">Add blank vial</button>
+      <button class="action danger"     onclick="clearResults()">Clear all</button>
+      <button class="action secondary"  onclick="copyResults()">Copy results</button>
+    </div>
+  </div>
+
+</div><!-- /pane-results -->
+
+</main>
+
+<footer>
+  ¹⁴CO₂ Assimilation Assay Calculator — Supplementary File S1<br>
+  Ray AE, Tribbia DZ, Bernaud N, Ferrari BC (in preparation) &bull;
+  All calculations performed locally in your browser &bull; No data is transmitted or stored
+</footer>
+
+<script>
+// ══════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════
+const DPM_PER_UCI = 2220000;
+
+// ══════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'results') syncResultsFromDesigner();
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(n, dec=2) {
+  if (!isFinite(n) || isNaN(n)) return '—';
+  return n.toLocaleString('en-AU', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function setCalc(id, text, state='') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'calc-val' + (el.classList.contains('bold') ? ' bold' : '') + (state ? ' ' + state : '');
+}
+function setDot(id, state) {
+  const el = document.getElementById(id);
+  if (el) el.className = 'status-dot ' + state;
+}
+function setStatus(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+function showAlert(id, cls, icon, msg) {
+  const el = document.getElementById(id);
+  el.style.display = 'flex';
+  el.className = 'alert ' + cls;
+  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+}
+function hideAlert(id) { document.getElementById(id).style.display = 'none'; }
+
+// ══════════════════════════════════════════
+// EXPERIMENT DESIGNER CALCULATOR
+// Full Ferrari lab gasification bag logic
+// ══════════════════════════════════════════
+function calc() {
+  const sa         = v('sa');           // mCi/mmol = µCi/µmol
+  const conc       = v('conc');         // µCi/µL
+  const limit_mbq  = v('inst_limit');   // MBq
+  const n          = v('nvials');       // vials required
+  const hs         = v('hs_vol');       // mL headspace per vial
+  const tgt_ppm    = v('target_ppm');   // ppmv in sample vial
+  const inj_ul     = v('inj_vol');      // µL injected per vial
+  const overhead   = v('overhead');     // % extra vials
+  const lab_temp   = v('lab_temp');     // °C
+  const incub_temp = v('incub_temp');   // °C (protocol info only)
+  const dur        = v('duration');
+  const stype      = document.getElementById('sample_type').value;
+
+  // Update mass label
+  document.getElementById('lbl-mass').innerHTML =
+    stype === 'soil'
+      ? 'Sample mass <span class="unit">g</span>'
+      : 'Culture volume <span class="unit">mL</span>';
+
+  // ── Core gasification bag logic ────────────────────────────────────────
+
+  // Molar volume at lab temperature (L/mol)
+  const molar_vol = 22.414 * (lab_temp + 273.15) / 273.15;
+
+  // [¹⁴CO₂] concentration in gasification vessel (ppmv)
+  // Derived from: injecting inj_ul µL at vessel_ppm into hs mL headspace gives tgt_ppm
+  const vessel_ppm = inj_ul > 0 && hs > 0
+    ? 1000 * tgt_ppm * hs / inj_ul
+    : 0;
+
+  // Gasification vessel volume needed (mL)
+  const vessel_vol_mL = inj_ul * n * (1 + overhead / 100) / 1000;
+  const vessel_vol_uL = vessel_vol_mL * 1000;
+
+  // Gas volume of evolved ¹⁴CO₂ (µL)
+  // vessel_vol_mL * 1000 µL/mL * vessel_ppm / 1e6 = µL of pure CO₂
+  const gas_vol_uL = vessel_vol_mL * 1000 * vessel_ppm / 1e6;
+
+  // µmol ¹⁴CO₂ required
+  // µL ÷ (L/mol) = µL × mol/L = µmol
+  const umol_CO2 = molar_vol > 0 ? gas_vol_uL / molar_vol : 0;
+
+  // Stock volume to pipette (µL)
+  // µmol × SA(µCi/µmol) ÷ conc(µCi/µL) = µL
+  const stock_vol_uL = sa > 0 && conc > 0 ? umol_CO2 * sa / conc : 0;
+
+  // Zero-air to add (mL)
+  const zero_air_mL = vessel_vol_mL - gas_vol_uL / 1000;
+
+  // HCl volume (µL) — 1.1× molar excess, same concentration as stock
+  const hcl_uL = stock_vol_uL * 1.1;
+
+  // Total activity in gasification bag
+  const total_uci = stock_vol_uL * conc;                 // µCi
+  const total_mbq = total_uci * 37 / 1000;               // MBq (exact: 1 µCi = 37,000 Bq)
+
+  // µCi per sample vial
+  const uci_per_vial = vessel_vol_uL > 0
+    ? total_uci * (inj_ul / vessel_vol_uL)
+    : 0;
+
+  // Theoretical DPM per vial
+  const dpm_per_vial = uci_per_vial * DPM_PER_UCI;
+
+  // pmol CO₂ in headspace (temperature-corrected)
+  const pmol_co2 = molar_vol > 0
+    ? hs * tgt_ppm / 1e6 * 1e12 / (molar_vol * 1000)
+    : 0;
+
+  // Sample vials possible from 1 batch
+  const vials_poss = inj_ul > 0 ? vessel_vol_uL / inj_ul : 0;
+
+  // ── Update output fields ───────────────────────────────────────────────
+  setCalc('out-molar-vol',  fmt(molar_vol, 4) + ' L/mol');
+  setCalc('out-vessel-ppm', vessel_ppm > 0 ? Math.round(vessel_ppm).toLocaleString() + ' ppmv' : '—');
+  setCalc('out-vessel-vol', vessel_vol_mL > 0 ? fmt(vessel_vol_mL, 2) + ' mL' : '—');
+  setCalc('out-gas-vol',    gas_vol_uL > 0   ? fmt(gas_vol_uL, 4)    + ' µL'  : '—');
+  setCalc('out-umol',       umol_CO2 > 0     ? fmt(umol_CO2, 6)      + ' µmol': '—');
+  setCalc('out-stock-vol',  stock_vol_uL > 0 ? fmt(stock_vol_uL, 2)  + ' µL'  : '—');
+  setCalc('out-zero-air',   zero_air_mL > 0  ? fmt(zero_air_mL, 2)   + ' mL'  : '—');
+  setCalc('out-hcl',        hcl_uL > 0       ? fmt(hcl_uL, 1)        + ' µL'  : '—');
+
+  // HCl molar concentration for gasification: conc (µCi/µL) / SA (mCi/mmol) = M
+  // Units: µCi/µL ÷ µCi/µmol = µmol/µL = mmol/mL = mol/L = M
+  const hcl_M = sa > 0 && conc > 0 ? conc / sa : 0;
+  setCalc('out-hcl-conc',
+    hcl_M > 0
+      ? fmt(hcl_M, 5) + ' M  (' + fmt(hcl_M * 1000, 3) + ' mM)'
+      : '—');
+  setCalc('out-total-uci',  total_uci > 0    ? fmt(total_uci, 4)     + ' µCi' : '—');
+  setCalc('out-uci-vial',   uci_per_vial > 0 ? fmt(uci_per_vial, 6)  + ' µCi' : '—');
+  setCalc('out-dpm-vial',   dpm_per_vial > 0 ? Math.round(dpm_per_vial).toLocaleString() + ' DPM' : '—');
+  setCalc('out-pmol',       pmol_co2 > 0     ? fmt(pmol_co2, 1)      + ' pmol': '—');
+  setCalc('out-vials-poss', vials_poss > 0   ? fmt(vials_poss, 1)    + ' vials': '—');
+
+  // ── Check 1: Activity limit (total bag activity vs institutional limit) ─
+  const limitOk = total_mbq > 0 && total_mbq <= limit_mbq;
+  setCalc('out-total-mbq',
+    total_mbq > 0 ? fmt(total_mbq, 4) + ' MBq' : '—',
+    total_mbq > limit_mbq ? 'fail' : (total_mbq > 0 ? 'pass' : ''));
+  setDot('dot-limit', total_mbq > limit_mbq ? 'fail' : (total_mbq > 0 ? 'pass' : ''));
+  setStatus('sv-limit', total_mbq > 0 ? fmt(total_mbq, 3) + ' / ' + fmt(limit_mbq, 1) + ' MBq' : '—');
+  if (total_mbq > limit_mbq) {
+    showAlert('alert-limit', 'fail', '✗',
+      `Total bag activity (${fmt(total_mbq, 3)} MBq) exceeds your institutional limit (${fmt(limit_mbq, 1)} MBq). ` +
+      `Reduce n_vials, injection volume, or overhead margin.`);
+  } else { hideAlert('alert-limit'); }
+
+  // ── Check 2: Sufficient ¹⁴CO₂ (vials possible ≥ vials required) ────────
+  const suffOk = vials_poss >= n && n > 0;
+  setDot('dot-sufficient', n > 0 ? (suffOk ? 'pass' : 'fail') : '');
+  setStatus('sv-sufficient', vials_poss > 0 ? fmt(vials_poss, 1) + ' / ' + n + ' vials' : '—');
+  if (n > 0 && !suffOk) {
+    showAlert('alert-suff', 'fail', '✗',
+      `Vials possible (${fmt(vials_poss, 1)}) < vials required (${n}). Increase overhead margin.`);
+  } else { hideAlert('alert-suff'); }
+
+  // ── Check 3: Injection volume ────────────────────────────────────────
+  const injOk = inj_ul >= 300 && inj_ul <= 600;
+  setDot('dot-inj', inj_ul > 0 ? (injOk ? 'pass' : 'fail') : '');
+  setStatus('sv-inj', inj_ul > 0 ? inj_ul + ' µL' : '—');
+  if (inj_ul > 0 && !injOk) {
+    showAlert('alert-inj', 'fail', '✗',
+      `Injection volume (${inj_ul} µL) is outside the recommended range (300–600 µL). Adjust before proceeding.`);
+  } else { hideAlert('alert-inj'); }
+
+  // ── Overall ────────────────────────────────────────────────────────────
+  const allOk = limitOk && suffOk && injOk;
+  setDot('dot-overall', total_mbq > 0 ? (allOk ? 'pass' : 'fail') : '');
+
+  // ── Protocol summary ───────────────────────────────────────────────────
+  document.getElementById('out-gasification').textContent =
+    stock_vol_uL > 0
+      ? `Pipette ${fmt(stock_vol_uL, 1)} µL of [¹⁴C]-NaHCO₃ stock into gasification vessel. ` +
+        `Add ${fmt(hcl_uL, 1)} µL of HCl prepared at ${hcl_M > 0 ? fmt(hcl_M, 5) : '—'} M (same molar concentration as stock; 1.10× excess). ` +
+        `Add ${fmt(zero_air_mL, 1)} mL zero-air. Seal in flexible gas bag. ` +
+        `Incubate 2 h at room temperature in the dark.`
+      : '—';
+
+  document.getElementById('out-incubation').textContent =
+    inj_ul > 0
+      ? `Inject ${fmt(inj_ul, 0)} µL of gasification bag gas into each sealed serum vial. ` +
+        `Incubate ${dur} day${dur !== 1 ? 's' : ''} in the dark at ${incub_temp}°C.`
+      : '—';
+
+  document.getElementById('out-acidification').textContent =
+    stype === 'soil'
+      ? 'Transfer soil to scintillation vial. Add 1 M HCl (1 mL). Incubate 50°C, 24 h (×2). Add EcoLume. Count ≥ 5 min.'
+      : 'Centrifuge culture. Discard supernatant. Resuspend pellet in 1 M HCl. Incubate 50°C, 24 h (×2). Add EcoLume. Count ≥ 5 min.';
+}
+
+// ══════════════════════════════════════════
+// RESULTS TABLE
+// ══════════════════════════════════════════
+let rowCount = 0;
+
+function syncResultsFromDesigner() {
+  // Pull theoretical DPM from designer output
+  const sa    = v('sa');
+  const conc  = v('conc');
+  const inj   = v('inj_vol');
+  const n     = v('nvials');
+  const hs    = v('hs_vol');
+  const tgt   = v('target_ppm');
+  const oh    = v('overhead');
+  const lt    = v('lab_temp');
+
+  const molar_vol   = 22.414 * (lt + 273.15) / 273.15;
+  const vessel_ppm  = inj > 0 && hs > 0 ? 1000 * tgt * hs / inj : 0;
+  const vessel_vol_mL = inj * n * (1 + oh / 100) / 1000;
+  const gas_vol_uL  = vessel_vol_mL * 1000 * vessel_ppm / 1e6;
+  const umol_CO2    = molar_vol > 0 ? gas_vol_uL / molar_vol : 0;
+  const stock_vol   = sa > 0 && conc > 0 ? umol_CO2 * sa / conc : 0;
+  const total_uci   = stock_vol * conc;
+  const vessel_vol_uL = vessel_vol_mL * 1000;
+  const uci_per_vial = vessel_vol_uL > 0 ? total_uci * (inj / vessel_vol_uL) : 0;
+  const theor = uci_per_vial * DPM_PER_UCI;
+
+  if (theor > 0) {
+    document.getElementById('r-theor').value = Math.round(theor);
+  }
+  document.getElementById('r-type').value  = document.getElementById('sample_type').value;
+  document.getElementById('r-mass').value  = document.getElementById('sample_mass').value;
+  document.getElementById('r-sa').value    = document.getElementById('sa').value;
+  document.getElementById('r-duration').value = document.getElementById('duration').value;
+  updateRateLabel();
+  calcResults();
+}
+
+function updateRateLabel() {
+  const stype = document.getElementById('r-type').value;
+  document.getElementById('r-lbl-mass').innerHTML =
+    stype === 'soil'
+      ? 'Sample mass <span class="unit">g</span>'
+      : 'Culture volume <span class="unit">mL</span>';
+  document.getElementById('rate-col-hdr').textContent =
+    stype === 'soil' ? 'Rate (nmol g⁻¹ d⁻¹)' : 'Rate (pmol mL⁻¹ d⁻¹)';
+  calcResults();
+}
+
+function addRow(label='', dpm=null, isBlank=false) {
+  rowCount++;
+  const idx = rowCount;
+  const tbody = document.getElementById('results-body');
+  const tr = document.createElement('tr');
+  tr.id = 'row-' + idx;
+  tr.innerHTML = `
+    <td><input type="text" value="${label || (isBlank ? 'Blank' : 'Vial_' + String(idx).padStart(2,'0'))}" onchange="calcResults()" style="min-width:90px;"></td>
+    <td><input type="number" id="dpm-${idx}" value="${dpm !== null ? dpm : ''}" placeholder="—" oninput="calcResults()" style="min-width:90px;"></td>
+    <td><span class="td-calc" id="corr-${idx}">—</span></td>
+    <td><span class="td-calc" id="pct-${idx}">—</span></td>
+    <td><span class="td-calc" id="nmol-${idx}">—</span></td>
+    <td><span class="td-rate" id="rate-${idx}">—</span></td>
+    <td style="text-align:center"><input type="checkbox" id="excl-${idx}" onchange="calcResults()" ${isBlank ? 'checked' : ''}></td>
+  `;
+  tbody.appendChild(tr);
+  calcResults();
+}
+
+function addBlankRow() { addRow('Blank', null, true); }
+
+function clearResults() {
+  if (!confirm('Clear all vial data?')) return;
+  document.getElementById('results-body').innerHTML = '';
+  rowCount = 0;
+  calcResults();
+}
+
+function calcResults() {
+  const blank   = v('r-blank');
+  const theor   = v('r-theor');
+  const sa      = v('r-sa');        // mCi/mmol = µCi/µmol
+  const mass    = v('r-mass');
+  const dur     = v('r-duration');
+  const stype   = document.getElementById('r-type').value;
+  const isCulture = stype === 'culture';
+
+  // nmol = corrDPM / (SA × 2220)
+  // Derivation: corrDPM / 2,220,000 µCi × 1/SA µmol/µCi × 1000 nmol/µmol
+  //           = corrDPM / (SA × 2220)  [nmol]
+  const SA_factor = sa * 2220; // DPM per nmol
+
+  let rates = [], recov = [];
+
+  for (let i = 1; i <= rowCount; i++) {
+    const inp  = document.getElementById('dpm-' + i);
+    if (!inp) continue;
+    const raw  = parseFloat(inp.value);
+    const excl = document.getElementById('excl-' + i)?.checked;
+    const hasVal = !isNaN(raw) && inp.value !== '';
+
+    if (!hasVal) {
+      ['corr','pct','nmol','rate'].forEach(p =>
+        document.getElementById(p+'-'+i).textContent = '—');
+      continue;
+    }
+
+    const corr = Math.max(0, raw - blank);
+    const pct  = theor > 0 ? corr / theor * 100 : NaN;
+    // nmol fixed (for both soil and culture initially)
+    const nmol = SA_factor > 0 ? corr / SA_factor : NaN;
+    // Rate: for culture convert nmol → pmol (×1000) then /mass/dur
+    const rate = mass > 0 && dur > 0
+      ? (isCulture ? nmol * 1000 / mass / dur : nmol / mass / dur)
+      : NaN;
+
+    document.getElementById('corr-'+i).textContent =
+      isFinite(corr) ? Math.round(corr).toLocaleString() : '—';
+
+    const pctEl = document.getElementById('pct-'+i);
+    pctEl.textContent = isFinite(pct) ? fmt(pct, 1) + '%' : '—';
+    pctEl.className   = pct < 70 ? 'td-warn' : 'td-calc';
+
+    document.getElementById('nmol-'+i).textContent =
+      isFinite(nmol) ? fmt(nmol, 4) : '—';
+
+    const rateEl = document.getElementById('rate-'+i);
+    rateEl.textContent = isFinite(rate) ? fmt(rate, 3) : '—';
+    rateEl.style.opacity = excl ? '0.35' : '1';
+
+    if (!excl && isFinite(rate)) rates.push(rate);
+    if (!excl && isFinite(pct))  recov.push(pct);
+  }
+
+  const mean = rates.length ? rates.reduce((a,b)=>a+b,0)/rates.length : NaN;
+  const sd   = rates.length > 1
+    ? Math.sqrt(rates.reduce((s,r)=>s+(r-mean)**2,0)/(rates.length-1))
+    : NaN;
+  const meanRec = recov.length ? recov.reduce((a,b)=>a+b,0)/recov.length : NaN;
+  const unit  = isCulture ? 'pmol mL⁻¹ d⁻¹' : 'nmol g⁻¹ d⁻¹';
+
+  document.getElementById('stat-n').textContent    = rates.length || '—';
+  document.getElementById('stat-mean').textContent = isFinite(mean) ? fmt(mean, 3) : '—';
+  document.getElementById('stat-unit').textContent = isFinite(mean) ? ' ' + unit : '';
+  document.getElementById('stat-sd').textContent   = isFinite(sd)   ? fmt(sd, 3)  : '—';
+  document.getElementById('stat-rec').textContent  = isFinite(meanRec) ? fmt(meanRec, 1) : '—';
+}
+
+function copyResults() {
+  const rows = [['Vial','Raw DPM','Corrected DPM','% Recovery','nmol CO₂','Rate','Excluded'].join('\t')];
+  for (let i = 1; i <= rowCount; i++) {
+    const inp = document.getElementById('dpm-'+i);
+    if (!inp) continue;
+    const label = document.querySelector(`#row-${i} td:first-child input`)?.value || '';
+    rows.push([
+      label,
+      inp.value,
+      document.getElementById('corr-'+i)?.textContent || '',
+      document.getElementById('pct-'+i)?.textContent  || '',
+      document.getElementById('nmol-'+i)?.textContent || '',
+      document.getElementById('rate-'+i)?.textContent || '',
+      document.getElementById('excl-'+i)?.checked ? 'Y' : ''
+    ].join('\t'));
+  }
+  navigator.clipboard.writeText(rows.join('\n'))
+    .then(() => alert('Results copied — paste into Excel or R.'))
+    .catch(() => alert('Copy failed — please select the table manually.'));
+}
+
+// ══════════════════════════════════════════
+// INITIALISE
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  calc();
+  [['Vial_01',false],['Vial_02',false],['Vial_03',false],
+   ['Vial_04',false],['Vial_05',false],['Blank',true]]
+    .forEach(([l,b]) => addRow(l, null, b));
+});
+</script>
+</body>
+</html>
