@@ -1,7 +1,5 @@
 # ¹⁴CO₂ Assimilation Assay Calculator
 
-**⚠ This repository is currently private and under active development. The associated manuscript is in preparation. The tool and this README will be updated upon acceptance for publication.**
-
 ---
 
 ## Overview
