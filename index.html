@@ -58,8 +58,8 @@
   .field:nth-child(odd) { border-right: 1px solid var(--border); }
   .field.full { grid-column: 1 / -1; border-right: none; }
   .field:last-child, .field.full:last-child { border-bottom: none; }
-  label { font-size: 0.75rem; font-weight: 500; color: var(--grey); letter-spacing: 0.01em; display: flex; align-items: center; gap: 5px; }
-  label .unit { font-family: var(--mono); font-size: 0.68rem; background: var(--calc-bg); color: var(--blue); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
+  label { font-size: 0.75rem; font-weight: 500; color: var(--grey); letter-spacing: 0.01em; display: block; }
+  label .unit { font-family: var(--mono); font-size: 0.68rem; background: var(--calc-bg); color: var(--blue); padding: 1px 5px; border-radius: 3px; float: right; margin-left: 8px; }
   input[type="number"], input[type="text"], select { font-family: var(--mono); font-size: 0.92rem; font-weight: 500; color: var(--navy); background: var(--input-bg); border: 1px solid #e8d9b0; border-radius: 4px; padding: 6px 10px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; -moz-appearance: textfield; }
   input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
   input:focus, select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(230,159,0,0.15); }
@@ -111,13 +111,14 @@
 <body>
 
 <header>
-  <div class="badge">Supplementary Tool S1</div>
+  <div class="badge">Companion to Supplementary S1</div>
   <h1><sup>14</sup>CO<sub>2</sub> Assimilation Assay Calculator</h1>
-  <p>Ray AE, Tribbia DZ, Bernaud N, Ferrari BC &middot; <em>Applied and Environmental Microbiology</em></p>
+  <p>Ray AE, Tribbia DZ, Benaud N, Laird T, Ferrari BC &middot; <em>Applied and Environmental Microbiology</em></p>
 </header>
 
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('designer')">Experiment Designer</button>
+  <button class="tab-btn" onclick="switchTab('waste')">Waste Calculator</button>
   <button class="tab-btn" onclick="switchTab('results')">Results Calculator</button>
 </div>
 
@@ -129,9 +130,9 @@
     <span class="status-val" id="sv-limit">—</span>
   </div>
   <div class="status-item">
-    <div class="status-dot" id="dot-sufficient"></div>
-    <span class="status-label">Sufficient CO<sub>2</sub></span>
-    <span class="status-val" id="sv-sufficient">—</span>
+    <div class="status-dot" id="dot-bag"></div>
+    <span class="status-label">Gas bag &lt; 100 mL</span>
+    <span class="status-val" id="sv-bag">—</span>
   </div>
   <div class="status-item">
     <div class="status-dot" id="dot-inj"></div>
@@ -209,7 +210,7 @@
       <div class="field">
         <label>Sample vial headspace volume <span class="unit">mL</span></label>
         <input type="number" id="hs_vol" value="2.16" step="0.01" min="0" oninput="calc()">
-        <span class="hint">1.5 mL vial (2.66 mL total internal volume) − 0.5 g soil or 0.5 mL culture = 2.16 mL headspace (adjust if sample volume differs)</span>
+        <span class="hint">2.66 mL (total internal volume of 1.5 mL vial) − 0.5 mL sample = 2.16 mL headspace. For soil, subtract the volume the soil occupies, not its mass.</span>
       </div>
       <div class="field">
         <label>Target [<sup>14</sup>CO<sub>2</sub>] in sample vial headspace <span class="unit">ppmv</span></label>
@@ -231,7 +232,7 @@
       <div class="field">
         <label>Overhead safety margin <span class="unit">%</span></label>
         <input type="number" id="overhead" value="10" step="1" min="0" max="100" oninput="calc()">
-        <span class="hint">Extra vials above n required. Accounts for vessel dead volume and handling losses. Increase if batches run short.</span>
+        <span class="hint">Extra vials' worth of gas above n required. Allows for dead volume and handling losses. Increase if batches run short.</span>
       </div>
       <div class="field">
         <label>Lab temperature for gas volume calculation <span class="unit">°C</span></label>
@@ -259,19 +260,19 @@
         <span class="hint">22.414 × (T + 273.15) / 273.15</span>
       </div>
       <div class="field">
-        <label>[<sup>14</sup>CO<sub>2</sub>] in gasification vessel <span class="unit">ppmv</span></label>
+        <label>[<sup>14</sup>CO<sub>2</sub>] in gas bag <span class="unit">ppmv</span></label>
         <div class="calc-val" id="out-vessel-ppm">—</div>
         <span class="hint">1000 × target ppmv × headspace vol / injection vol</span>
       </div>
       <div class="field">
-        <label>Gasification vessel volume needed <span class="unit">mL</span></label>
+        <label>Gas bag volume needed <span class="unit">mL</span></label>
         <div class="calc-val" id="out-vessel-vol">—</div>
-        <span class="hint">Injection vol × n_vials × (1 + overhead %)</span>
+        <span class="hint">Injection vol × n_vials × (1 + overhead %). Must be below 100 mL.</span>
       </div>
       <div class="field">
         <label>Gas volume of evolved <sup>14</sup>CO<sub>2</sub> <span class="unit">µL</span></label>
         <div class="calc-val" id="out-gas-vol">—</div>
-        <span class="hint">Vessel vol × vessel ppmv ÷ 1,000,000</span>
+        <span class="hint">Bag vol × bag ppmv ÷ 1,000,000</span>
       </div>
       <div class="field">
         <label>µmol <sup>14</sup>CO<sub>2</sub> required</label>
@@ -284,9 +285,9 @@
         <span class="hint">µmol × SA ÷ stock concentration</span>
       </div>
       <div class="field">
-        <label>Zero-air to add to gasification vessel <span class="unit">mL</span></label>
+        <label>Zero-air to add to gas bag <span class="unit">mL</span></label>
         <div class="calc-val" id="out-zero-air">—</div>
-        <span class="hint">Vessel volume − gas volume of pure <sup>14</sup>CO<sub>2</sub></span>
+        <span class="hint">Bag volume − gas volume of pure <sup>14</sup>CO<sub>2</sub></span>
       </div>
       <div class="field">
         <label>Volume of <strong>gasification</strong> HCl to add (1.10× excess) <span class="unit">µL</span></label>
@@ -326,7 +327,7 @@
       <div class="field">
         <label>µCi of [<sup>14</sup>CO<sub>2</sub>] per sample vial</label>
         <div class="calc-val" id="out-uci-vial">—</div>
-        <span class="hint">Total bag activity × (injection vol ÷ vessel vol)</span>
+        <span class="hint">Total bag activity × (injection vol ÷ bag vol)</span>
       </div>
       <div class="field">
         <label>Theoretical DPM per vial</label>
@@ -341,12 +342,12 @@
       <div class="field">
         <label>Sample vials possible from 1 batch</label>
         <div class="calc-val" id="out-vials-poss">—</div>
-        <span class="hint">Vessel volume ÷ injection volume</span>
+        <span class="hint">Bag volume ÷ injection volume (= n_vials × (1 + overhead %))</span>
       </div>
     </div>
 
     <div id="alert-limit"  class="alert" style="display:none"></div>
-    <div id="alert-suff"   class="alert" style="display:none"></div>
+    <div id="alert-bag"    class="alert" style="display:none"></div>
     <div id="alert-inj"    class="alert" style="display:none"></div>
   </div>
 
@@ -372,6 +373,175 @@
 </div><!-- /pane-designer -->
 
 
+<!-- ════════════════════ TAB 3: WASTE CALCULATOR ════════════════════ -->
+<div class="tab-pane" id="pane-waste">
+
+  <div class="rad-note">
+    <span class="icon">☢</span>
+    <span><strong>Waste disposal:</strong> Activity and <sup>14</sup>CO<sub>2</sub> quantities are taken from the Experiment Designer. Assumptions are deliberately conservative (activity is counted in both the liquid and solid streams). Confirm limits and disposal routes with your Radiation Safety Officer.</span>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="icon">A</div> <span>Linked from Experiment Designer</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Total activity in experiment <span class="unit">kBq</span></label>
+        <div class="calc-val" id="w-total">—</div>
+      </div>
+      <div class="field">
+        <label>Total <sup>14</sup>CO<sub>2</sub> generated <span class="unit">µmol</span></label>
+        <div class="calc-val" id="w-umol">—</div>
+      </div>
+      <div class="field">
+        <label>Number of sample vials</label>
+        <div class="calc-val" id="w-n">—</div>
+      </div>
+      <div class="field">
+        <label>Activity per sample vial <span class="unit">kBq</span></label>
+        <div class="calc-val" id="w-pervial">—</div>
+      </div>
+      <div class="field">
+        <label>Gasification vial liquid <span class="unit">mL</span></label>
+        <div class="calc-val" id="w-gasliq">—</div>
+        <span class="hint">Stock [<sup>14</sup>C]-NaHCO<sub>3</sub> + gasification HCl</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="icon">B</div> <span>Disposal limits</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Liquid waste limit <span class="unit">Bq/mL</span></label>
+        <input type="number" id="w-liqlim" value="100" step="1" min="0" oninput="calcWaste()">
+        <span class="hint">UNSW default (= 100 kBq/L). Replace with your institution's limit.</span>
+      </div>
+      <div class="field">
+        <label>Solid waste limit <span class="unit">Bq/g</span></label>
+        <input type="number" id="w-sollim" value="100" step="1" min="0" oninput="calcWaste()">
+        <span class="hint">UNSW default (= 100 kBq/kg). Replace with your institution's limit.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="icon">C</div> <span>Liquid waste</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Number of Drechsel traps</label>
+        <input type="number" id="w-ntraps" value="4" step="1" min="0" oninput="calcWaste()">
+        <span class="hint">Gas-tight series, each containing saturated Ca(OH)<sub>2</sub></span>
+      </div>
+      <div class="field">
+        <label>Volume per Drechsel trap <span class="unit">mL</span></label>
+        <input type="number" id="w-trapvol" value="100" step="10" min="0" oninput="calcWaste()">
+      </div>
+      <div class="field">
+        <label>Liquid sample waste per vial <span class="unit">mL</span></label>
+        <input type="number" id="w-sampliq" value="0.5" step="0.1" min="0" oninput="calcWaste()">
+        <span class="hint">Soil: 0 (dried in scintillation vial). Culture: culture volume plus medium used to rinse the serum vial.</span>
+      </div>
+      <div class="field">
+        <label>Rinse water for consumables <span class="unit">mL</span></label>
+        <input type="number" id="w-rinse" value="1000" step="50" min="0" oninput="calcWaste()">
+        <span class="hint">Double-rinse water from tips, needles, tubes and vials</span>
+      </div>
+      <div class="field">
+        <label>Activity assumed in liquid waste <span class="unit">%</span></label>
+        <input type="number" id="w-liqpct" value="100" step="1" min="0" oninput="calcWaste()">
+        <span class="hint">Conservative: no <sup>14</sup>C assumed fixed or vented</span>
+      </div>
+      <div class="field">
+        <label>Total liquid waste volume <span class="unit">mL</span></label>
+        <div class="calc-val" id="w-liqvol">—</div>
+        <span class="hint">Traps + sample liquid + gasification vial liquid + rinse water</span>
+      </div>
+      <div class="field">
+        <label>Liquid waste concentration <span class="unit">Bq/mL</span></label>
+        <div class="calc-val" id="w-liqconc">—</div>
+        <span class="hint">Equivalent to kBq/L</span>
+      </div>
+      <div class="field">
+        <label>Minimum total volume for disposal <span class="unit">L</span></label>
+        <div class="calc-val" id="w-liqmin">—</div>
+        <span class="hint">Activity (kBq) ÷ limit (kBq/L)</span>
+      </div>
+      <div class="field">
+        <label>Additional water required <span class="unit">L</span></label>
+        <div class="calc-val" id="w-liqadd">—</div>
+        <span class="hint">Minimum total volume − collected volume</span>
+      </div>
+    </div>
+    <div id="alert-liq" class="alert" style="display:none"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="icon">D</div> <span>Drechsel trap capacity (Ca(OH)<sub>2</sub>)</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Ca(OH)<sub>2</sub> solubility <span class="unit">g/100 mL</span></label>
+        <input type="number" id="w-casol" value="0.16" step="0.01" min="0" oninput="calcWaste()">
+        <span class="hint">≈0.16–0.17 g/100 mL at 20–25 °C; default is conservative</span>
+      </div>
+      <div class="field">
+        <label>Ca(OH)<sub>2</sub> in first trap <span class="unit">µmol</span></label>
+        <div class="calc-val" id="w-ca">—</div>
+        <span class="hint">Solubility × trap volume ÷ 74.09 g/mol</span>
+      </div>
+      <div class="field">
+        <label>Ca(OH)<sub>2</sub> : <sup>14</sup>CO<sub>2</sub> molar ratio (first trap)</label>
+        <div class="calc-val" id="w-ratio">—</div>
+        <span class="hint">CO<sub>2</sub> + Ca(OH)<sub>2</sub> → CaCO<sub>3</sub> + H<sub>2</sub>O (1:1). ≥10-fold excess required, allowing for unlabelled respired CO<sub>2</sub>.</span>
+      </div>
+      <div class="field">
+        <label>CaCO<sub>3</sub> formed if all <sup>14</sup>CO<sub>2</sub> captured <span class="unit">mg</span></label>
+        <div class="calc-val" id="w-caco3">—</div>
+        <span class="hint">May precipitate; trap contents including precipitate are treated as liquid waste</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="icon">E</div> <span>Solid waste</span></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Activity retained on rinsed consumables <span class="unit">%</span></label>
+        <input type="number" id="w-solret" value="1" step="0.1" min="0" oninput="calcWaste()">
+        <span class="hint">Double rinse removes ~90% then ~9%, leaving ~1%</span>
+      </div>
+      <div class="field">
+        <label>Maximum % of added label fixed per sample <span class="unit">%</span></label>
+        <input type="number" id="w-fixpct" value="1" step="0.1" min="0" oninput="calcWaste()">
+        <span class="hint">Conservative default; <i>R. opacus</i> fixed ≤ ~0.55% in this study</span>
+      </div>
+      <div class="field">
+        <label>Estimated solid waste mass <span class="unit">kg</span></label>
+        <input type="number" id="w-solmass" value="3" step="0.5" min="0" oninput="calcWaste()">
+        <span class="hint">Plastic consumables, needles, PPE and glass vials</span>
+      </div>
+      <div class="field">
+        <label>Total activity in solid waste <span class="unit">kBq</span></label>
+        <div class="calc-val" id="w-solact">—</div>
+        <span class="hint">Consumables + activity fixed in samples</span>
+      </div>
+      <div class="field">
+        <label>Solid waste concentration <span class="unit">Bq/g</span></label>
+        <div class="calc-val" id="w-solconc">—</div>
+        <span class="hint">kBq ÷ kg = Bq/g</span>
+      </div>
+      <div class="field">
+        <label>Minimum solid waste mass for disposal <span class="unit">kg</span></label>
+        <div class="calc-val" id="w-solmin">—</div>
+        <span class="hint">Activity (kBq) ÷ limit (kBq/kg)</span>
+      </div>
+    </div>
+    <div id="alert-sol" class="alert" style="display:none"></div>
+  </div>
+
+  <p class="hint" style="padding:0 4px 8px">Activity is counted in full in the liquid stream and again in the solid stream, so the total exceeds 100% of the activity used. This overestimates both streams.</p>
+
+</div><!-- /pane-waste -->
+
 <!-- ════════════════════ TAB 2: RESULTS CALCULATOR ════════════════════ -->
 <div class="tab-pane" id="pane-results">
 
@@ -379,9 +549,9 @@
     <div class="section-head"><div class="icon">P</div> Experiment parameters</div>
     <div class="field-grid">
       <div class="field">
-        <label>Background DPM (blank mean) <span class="unit">DPM</span></label>
+        <label>Background DPM (mean of negative controls) <span class="unit">DPM</span></label>
         <input type="number" id="r-blank" value="50" step="1" min="0" oninput="calcResults()">
-        <span class="hint">Mean DPM of blank vials (EcoLume only, no <sup>14</sup>C)</span>
+        <span class="hint">Mean raw DPM of heat-killed or uninoculated controls. Subtracting this equals subtracting the blank and then the net control DPM.</span>
       </div>
       <div class="field">
         <label>Theoretical DPM per vial</label>
@@ -419,7 +589,7 @@
             <th>Vial</th>
             <th>Raw DPM</th>
             <th>Blank-corrected DPM</th>
-            <th>% Recovery</th>
+            <th>% of added label fixed</th>
             <th>nmol CO<sub>2</sub> fixed</th>
             <th id="rate-col-hdr">Rate (nmol g⁻¹ d⁻¹)</th>
             <th>Exclude</th>
@@ -443,7 +613,7 @@
         <div class="stat-val" id="stat-sd">—</div>
       </div>
       <div class="stat-block">
-        <div class="stat-label">Mean % recovery</div>
+        <div class="stat-label">Mean % label fixed</div>
         <div class="stat-val" id="stat-rec">—<span class="stat-unit">%</span></div>
       </div>
     </div>
@@ -460,8 +630,8 @@
 </main>
 
 <footer>
-  <sup>14</sup>CO<sub>2</sub> Assimilation Assay Calculator &middot; Supplementary File S1<br>
-  Ray AE, Tribbia DZ, Bernaud N, Ferrari BC &bull;
+  <sup>14</sup>CO<sub>2</sub> Assimilation Assay Calculator &middot; browser companion to Supplementary S1<br>
+  Ray AE, Tribbia DZ, Benaud N, Laird T, Ferrari BC &bull;
   All calculations performed locally in your browser &bull; No data is transmitted or stored
 </footer>
 
@@ -470,6 +640,7 @@
 // CONSTANTS
 // ══════════════════════════════════════════
 const DPM_PER_UCI = 2220000;
+let DESIGN = { total_kbq: 0, umol: 0, n: 0, kbq_per_vial: 0, gasliq_mL: 0 };
 
 // ══════════════════════════════════════════
 // TAB SWITCHING
@@ -480,6 +651,7 @@ function switchTab(tab) {
   document.getElementById('pane-' + tab).classList.add('active');
   event.target.classList.add('active');
   if (tab === 'results') syncResultsFromDesigner();
+  if (tab === 'waste') calcWaste();
 }
 
 // ══════════════════════════════════════════
@@ -514,7 +686,7 @@ function hideAlert(id) { document.getElementById(id).style.display = 'none'; }
 
 // ══════════════════════════════════════════
 // EXPERIMENT DESIGNER CALCULATOR
-// Full Ferrari lab gasification bag logic
+// Gasification bag calculations
 // ══════════════════════════════════════════
 function calc() {
   const sa         = v('sa');           // mCi/mmol = µCi/µmol
@@ -551,7 +723,7 @@ function calc() {
   const vessel_vol_mL = inj_ul * n * (1 + overhead / 100) / 1000;
   const vessel_vol_uL = vessel_vol_mL * 1000;
 
-  // Gas volume of evolved <sup>14</sup>CO<sub>2</sub> (µL)
+  // Gas volume of evolved 14CO2 (µL)
   // vessel_vol_mL * 1000 µL/mL * vessel_ppm / 1e6 = µL of pure CO₂
   const gas_vol_uL = vessel_vol_mL * 1000 * vessel_ppm / 1e6;
 
@@ -589,6 +761,10 @@ function calc() {
   // Sample vials possible from 1 batch
   const vials_poss = inj_ul > 0 ? vessel_vol_uL / inj_ul : 0;
 
+  // Shared with the Waste Calculator
+  DESIGN = { total_kbq: total_mbq * 1000, umol: umol_CO2, n: n,
+             kbq_per_vial: uci_per_vial * 37, gasliq_mL: (stock_vol_uL + hcl_uL) / 1000 };
+
   // ── Update output fields ───────────────────────────────────────────────
   setCalc('out-molar-vol',  fmt(molar_vol, 4) + ' L/mol');
   setCalc('out-vessel-ppm', vessel_ppm > 0 ? Math.round(vessel_ppm).toLocaleString() + ' ppmv' : '—');
@@ -625,14 +801,15 @@ function calc() {
       `Reduce n_vials, injection volume, or overhead margin.`);
   } else { hideAlert('alert-limit'); }
 
-  // ── Check 2: Sufficient ¹⁴CO₂ (vials possible ≥ vials required) ────────
-  const suffOk = vials_poss >= n && n > 0;
-  setDot('dot-sufficient', n > 0 ? (suffOk ? 'pass' : 'fail') : '');
-  setStatus('sv-sufficient', vials_poss > 0 ? fmt(vials_poss, 1) + ' / ' + n + ' vials' : '—');
-  if (n > 0 && !suffOk) {
-    showAlert('alert-suff', 'fail', '✗',
-      `Vials possible (${fmt(vials_poss, 1)}) < vials required (${n}). Increase overhead margin.`);
-  } else { hideAlert('alert-suff'); }
+  // ── Check 2: Gas bag capacity (bag volume < 100 mL) ─────────────────
+  const BAG_MAX_ML = 100;
+  const bagOk = vessel_vol_mL > 0 && vessel_vol_mL < BAG_MAX_ML;
+  setDot('dot-bag', vessel_vol_mL > 0 ? (bagOk ? 'pass' : 'fail') : '');
+  setStatus('sv-bag', vessel_vol_mL > 0 ? fmt(vessel_vol_mL, 1) + ' mL' : '—');
+  if (vessel_vol_mL >= BAG_MAX_ML) {
+    showAlert('alert-bag', 'fail', '✗',
+      `Gas bag volume (${fmt(vessel_vol_mL, 1)} mL) exceeds the 100 mL bag capacity. Reduce n_vials, injection volume, or overhead margin.`);
+  } else { hideAlert('alert-bag'); }
 
   // ── Check 3: Injection volume ────────────────────────────────────────
   const injOk = inj_ul >= 300 && inj_ul <= 600;
@@ -644,16 +821,16 @@ function calc() {
   } else { hideAlert('alert-inj'); }
 
   // ── Overall ────────────────────────────────────────────────────────────
-  const allOk = limitOk && suffOk && injOk;
+  const allOk = limitOk && bagOk && injOk;
   setDot('dot-overall', total_mbq > 0 ? (allOk ? 'pass' : 'fail') : '');
 
   // ── Protocol summary ───────────────────────────────────────────────────
   document.getElementById('out-gasification').innerHTML =
     stock_vol_uL > 0
-      ? `Pipette ${fmt(stock_vol_uL, 1)} µL of [<sup>14</sup>C]-NaHCO<sub>3</sub> stock into gasification vessel. ` +
-        `Add ${fmt(hcl_uL, 1)} µL of HCl prepared at ${hcl_M > 0 ? fmt(hcl_M, 5) : '—'} M (same molar concentration as stock; 1.10× excess). ` +
-        `Add ${fmt(zero_air_mL, 1)} mL zero-air. Seal in flexible gas bag. ` +
-        `Incubate 2 h at room temperature in the dark.`
+      ? `Pipette ${fmt(stock_vol_uL, 1)} µL of [<sup>14</sup>C]-NaHCO<sub>3</sub> stock into a 2.66 mL gasification vial; seal, crimp and attach to the gas bag (open both valves). ` +
+        `Inject ${fmt(hcl_uL, 1)} µL of HCl prepared at ${hcl_M > 0 ? fmt(hcl_M, 5) : '—'} M (same molar concentration as stock; 1.10× excess) through the vial cap. ` +
+        `Allow gasification for 2 h at room temperature in the dark. ` +
+        `Inject ${fmt(zero_air_mL, 1)} mL zero-air via a 0.22 µm filter to flush residual <sup>14</sup>CO<sub>2</sub> from the vial into the bag. Close both valves.`
       : '—';
 
   document.getElementById('out-incubation').textContent =
@@ -664,8 +841,51 @@ function calc() {
 
   document.getElementById('out-acidification').textContent =
     stype === 'soil'
-      ? 'Transfer soil to scintillation vial. Add 1 M HCl (1 mL). Incubate 50°C, 24 h (×2). Add EcoLume. Count ≥ 5 min.'
-      : 'Centrifuge culture. Discard supernatant. Resuspend pellet in 1 M HCl. Incubate 50°C, 24 h (×2). Add EcoLume. Count ≥ 5 min.';
+      ? 'Aspirate headspace into the Drechsel trap; purge 6 h with an open needle. Pour sample into a 20 mL scintillation vial, rinsing the serum vial with 1 M HCl; bring to ≥ 3 mL 1 M HCl. Vortex, then dry at 50°C for 24 h. Repeat with 1.5 mL 1 M HCl and dry completely. Add 12 mL EcoLume. Count ≥ 5 min.'
+      : 'Aspirate headspace into the Drechsel trap; purge 6 h with an open needle. Transfer culture to a 15 mL tube, rinsing the vial twice with medium. Centrifuge 4,000 × g, 20 min, 4°C; discard supernatant into liquid radioactive waste. Resuspend pellet in 3 mL 1 M HCl and transfer to a 20 mL scintillation vial. Dry at 50°C for 24 h; repeat with 1.5 mL 1 M HCl and dry completely. Add 12 mL EcoLume. Count ≥ 5 min.';
+}
+
+// ══════════════════════════════════════════
+// WASTE CALCULATOR
+// ══════════════════════════════════════════
+function calcWaste() {
+  const d = DESIGN;
+  const liqLim = v('w-liqlim'), solLim = v('w-sollim');
+  const liqVol = v('w-ntraps') * v('w-trapvol') + d.n * v('w-sampliq') + d.gasliq_mL + v('w-rinse');  // mL
+  const liqAct = d.total_kbq * v('w-liqpct') / 100;          // kBq
+  const liqConc = liqVol > 0 ? liqAct * 1000 / liqVol : NaN;  // Bq/mL
+  const liqMin = liqLim > 0 ? liqAct / liqLim : NaN;          // L
+  const liqAdd = Math.max(0, liqMin - liqVol / 1000);         // L
+  const ca = v('w-casol') * v('w-trapvol') / 100 / 74.09 * 1e6; // µmol
+  const ratio = d.umol > 0 ? ca / d.umol : NaN;
+  const caco3 = d.umol * 100.09 / 1000;                       // mg
+  const solAct = d.total_kbq * v('w-solret') / 100 + d.n * d.kbq_per_vial * v('w-fixpct') / 100; // kBq
+  const solMass = v('w-solmass');
+  const solConc = solMass > 0 ? solAct / solMass : NaN;       // Bq/g
+  const solMin = solLim > 0 ? solAct / solLim : NaN;          // kg
+
+  setCalc('w-total',   fmt(d.total_kbq, 1) + ' kBq');
+  setCalc('w-umol',    fmt(d.umol, 4) + ' µmol');
+  setCalc('w-n',       String(d.n));
+  setCalc('w-pervial', fmt(d.kbq_per_vial, 2) + ' kBq');
+  setCalc('w-gasliq',  fmt(d.gasliq_mL, 3) + ' mL');
+  setCalc('w-liqvol',  fmt(liqVol, 1) + ' mL');
+  setCalc('w-liqconc', fmt(liqConc, 1) + ' Bq/mL', isFinite(liqConc) ? (liqConc <= liqLim ? 'pass' : 'fail') : '');
+  setCalc('w-liqmin',  fmt(liqMin, 1) + ' L');
+  setCalc('w-liqadd',  fmt(liqAdd, 1) + ' L');
+  setCalc('w-ca',      Math.round(ca).toLocaleString() + ' µmol');
+  setCalc('w-ratio',   isFinite(ratio) ? Math.round(ratio).toLocaleString() + ' : 1' : '—', isFinite(ratio) ? (ratio >= 10 ? 'pass' : 'fail') : '');
+  setCalc('w-caco3',   fmt(caco3, 3) + ' mg');
+  setCalc('w-solact',  fmt(solAct, 1) + ' kBq');
+  setCalc('w-solconc', fmt(solConc, 1) + ' Bq/g', isFinite(solConc) ? (solConc <= solLim ? 'pass' : 'fail') : '');
+  setCalc('w-solmin',  fmt(solMin, 2) + ' kg');
+
+  if (isFinite(liqConc) && liqConc > liqLim) {
+    showAlert('alert-liq', 'fail', '✗', `Liquid waste (${fmt(liqConc, 1)} Bq/mL) exceeds the ${liqLim} Bq/mL limit as collected. Dilute to at least ${fmt(liqMin, 1)} L total (add ≥ ${fmt(liqAdd, 1)} L water) before disposal.`);
+  } else { hideAlert('alert-liq'); }
+  if (isFinite(solConc) && solConc > solLim) {
+    showAlert('alert-sol', 'fail', '✗', `Solid waste (${fmt(solConc, 1)} Bq/g) exceeds the ${solLim} Bq/g limit. At least ${fmt(solMin, 2)} kg of solid waste is needed, or consult your RSO.`);
+  } else { hideAlert('alert-sol'); }
 }
 
 // ══════════════════════════════════════════
@@ -787,8 +1007,7 @@ function calcResults() {
       isFinite(corr) ? Math.round(corr).toLocaleString() : '—';
 
     const pctEl = document.getElementById('pct-'+i);
-    pctEl.textContent = isFinite(pct) ? fmt(pct, 1) + '%' : '—';
-    pctEl.className   = pct < 70 ? 'td-warn' : 'td-calc';
+    pctEl.textContent = isFinite(pct) ? fmt(pct, 2) + '%' : '—';
 
     document.getElementById('nmol-'+i).textContent =
       isFinite(nmol) ? fmt(nmol, 4) : '—';
@@ -812,11 +1031,11 @@ function calcResults() {
   document.getElementById('stat-mean').childNodes[0].nodeValue = isFinite(mean) ? fmt(mean, 3) : '—';
   document.getElementById('stat-unit').textContent = isFinite(mean) ? ' ' + unit : '';
   document.getElementById('stat-sd').textContent   = isFinite(sd)   ? fmt(sd, 3)  : '—';
-  document.getElementById('stat-rec').textContent  = isFinite(meanRec) ? fmt(meanRec, 1) : '—';
+  document.getElementById('stat-rec').textContent  = isFinite(meanRec) ? fmt(meanRec, 2) : '—';
 }
 
 function copyResults() {
-  const rows = [['Vial','Raw DPM','Corrected DPM','% Recovery','nmol CO₂','Rate','Excluded'].join('\t')];
+  const rows = [['Vial','Raw DPM','Corrected DPM','% label fixed','nmol CO₂','Rate','Excluded'].join('\t')];
   for (let i = 1; i <= rowCount; i++) {
     const inp = document.getElementById('dpm-'+i);
     if (!inp) continue;
